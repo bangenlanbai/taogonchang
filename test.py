@@ -138,14 +138,53 @@ def read_excel(path):
         return False, traceback.format_exc()
     return True, res
 
+def save_excel(data):
+    """
+        保存数据
+    :param data:
+    :return:
+    """
+    try:
+        tmpl_path = os.path.join('tmpl.xlsx')
+        wb = load_workbook(tmpl_path)
+        sheet = wb.active
+        for index, order in enumerate(data):
+            order_id = order.get('sourceTradeId')
+            index = index+2
+            flag, data = get_qOsi(order_id)
+            print(f'{order_id}: {data}')
+            order.update(data)
+            # sheet.cell(row=index, column=1, value=order_id)  # 快递公司
+            # sheet.cell(row=index, column=2, value=order_id)  # 快递单号
+            sheet.cell(row=index, column=3, value=order_id)  # 订单编号
+            # sheet.cell(row=index, column=4, value=order_id)  # 订单来源
+            sheet.cell(row=index, column=5, value=order.get('buyerNick'))  # 买家昵称
+            sheet.cell(row=index, column=6, value=order.get('fullName'))  # 收货人姓名
+            sheet.cell(row=index, column=7, value=order.get('mobilephone'))  # 收货人手机号
+            sheet.cell(row=index, column=8, value=order.get('prov'))  # 省
+            sheet.cell(row=index, column=9, value=order.get('city'))  # 市
+            sheet.cell(row=index, column=10, value=order.get('area'))  # 区/县
+            sheet.cell(row=index, column=11, value=order.get('town'))  # 街道地址
+            sheet.cell(row=index, column=12, value=order.get('fullAddress'))  # 详细信息
+            # sheet.cell(row=index, column=13, value=order.get('mobilephone'))  # 卖家备注
+            # sheet.cell(row=index, column=14, value=order.get('mobilephone'))  # 买家留言
+            # sheet.cell(row=index, column=15, value=order.get('mobilephone'))  # 实付金额
+            sheet.cell(row=index, column=16, value=order.get('auctionTitle'))  # 商品标题
+            sheet.cell(row=index, column=17, value=order.get('outerIdSku'))  # 商家编码
+            sheet.cell(row=index, column=18, value=order.get('buyAmount'))  # 商品数量
+        wb.save('订单数据_{}_{}.xlsx'.format('aa', time.strftime('%Y-%m-%d_%H_%M_%S')))
+    except Exception:
+        print("生成订单数据失败\n{}".format(traceback.format_exc()))
+        return False
 
 def save_data(data):
     """
 
     :return:
     """
-    with open('./data.json', encoding='utf8', mode='w') as f:
-        json.dump(data, f, ensure_ascii=False)
+    with open('./data.json', encoding='utf8', mode='r') as f:
+        data = json.load(f)
+    save_excel(data)
 
 
 if __name__ == '__main__':
