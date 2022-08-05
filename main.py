@@ -515,4 +515,6 @@ def main():
         taoGongChang.close_some_server()
         os.system('taskkill /f /im chromedriver.exe')
 
-main()
+
+if __name__ == '__main__':
+    main()
