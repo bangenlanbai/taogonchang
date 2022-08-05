@@ -53,8 +53,7 @@ class TaoGongChang(object):
             'cookie': 'cna=xXW2GqIv9RMCAbfvnGIq63vN; xlly_s=1; sgcookie=E100Qj86ID%2Fk0TrRWldMLBRIThghQTZGrW5na7sraTtAUpWD60g6oElStEvTvbC4iQIYjlctaQVdq9mffqVWdfGCud2BzCvMQYNnpd6vBQE2V%2Fs%3D; t=070b3f95a641ba0ca93d5bf37b525788; csg=94bb2a3c; _tb_token_=fef7e593eb6e3; cookie2=1aa13d513e4c871dfb77f7ab5001eef9; SCMLOCALE=zh-cn; _nk_=scm09620215; cookie17=UUpgR1XIK6lQS2vrBQ%3D%3D; SCMSESSID=1aa13d513e4c871dfb77f7ab5001eef9@HAVANA; SCMBIZTYPE=176000; X-XSRF-TOKEN=c39a6889-0197-406b-85c1-23acd3e78714; XSRF-TOKEN=846c7565-c106-46bb-a6e0-51411ad3ba5e; l=eB_izLpnL70Cr9-ABOfwhurza77OMIRfguPzaNbMiOCPOefWREFNW6xiTKLXCnGVnst6R3Wrj_IwBPTEGyznh3v4Gd3hJvSzqdTh.; tfstk=cQDGBNifhfPs-nnr0Aw6nVbtp5kcZC64rxkILhiqGCNUk-kFir5FaRdpxPYW7s1..; isg=BKmpjBp67zOSR9OHa2XjKRzauFUDdp2o7NeytUueWBDZEsgkk8creXBE1LYkijXg',
             'origin': 'https://tgc.tmall.com',
             'pragma': 'no-cache',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 ' \
-                          'Safari/537.36',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
             'x-xsrf-token': self.xsrf_token,
         }
         self.driver: webdriver.Chrome
@@ -515,3 +514,5 @@ def main():
     finally:
         taoGongChang.close_some_server()
         os.system('taskkill /f /im chromedriver.exe')
+
+main()
