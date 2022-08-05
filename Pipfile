@@ -7,8 +7,11 @@ name = "pypi"
 requests = "*"
 pywin32 = "*"
 openpyxl = "*"
+loguru = "*"
+pyinstaller = "*"
 
 [dev-packages]
+pyinstaller = "*"
 
 [requires]
 python_version = "3.7"
