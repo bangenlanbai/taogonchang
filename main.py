@@ -491,7 +491,7 @@ class TaoGongChang(object):
                 sheet.cell(row=index, column=9, value=order.get('city'))  # 市
                 sheet.cell(row=index, column=10, value=order.get('area'))  # 区/县
                 sheet.cell(row=index, column=11, value=order.get('town'))  # 街道地址
-                sheet.cell(row=index, column=12, value=order.get('fullAddress'))  # 详细信息
+                sheet.cell(row=index, column=12, value=order.get('address'))  # 详细信息
                 # sheet.cell(row=index, column=13, value=order.get('mobilephone'))  # 卖家备注
                 # sheet.cell(row=index, column=14, value=order.get('mobilephone'))  # 买家留言
                 # sheet.cell(row=index, column=15, value=order.get('mobilephone'))  # 实付金额
