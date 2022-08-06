@@ -2,7 +2,6 @@
 # @Time     : 2022/8/4 22:38
 # @Author   : BGLB
 # @Software : PyCharm
-import json
 import os
 import stat
 import sys
@@ -20,6 +19,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
+
+import json
 
 pre_start_js = """/*!
  * Note: Auto-generated, do not update manually.
@@ -49,7 +50,7 @@ class TaoGongChang(object):
         self.url_dict = {
             'order': 'https://tgc.tmall.com/api/v1/orderNew/getTradeOrders.htm',
             'qOsi': 'https://tgc.tmall.com/ds/api/v1/o/qOsi',
-            'login': 'https://tgc.tmall.com/api/v1/orderNew/getTradeOrders.htm'
+            'login': 'https://tgc.tmall.com/ds/page/supplier/order-manage'
         }
         self.xsrf_token = '846c7565-c106-46bb-a6e0-51411ad3ba5e'
         self.header = {
@@ -59,9 +60,8 @@ class TaoGongChang(object):
             'accept': 'application/json, text/plain, */*',
             'accept-language': 'zh-CN,zh;q=0.9',
             'bx-v': '2.2.2',
-            'cache-control': 'no-cache',
             'content-type': 'application/json;charset=UTF-8',
-            'cookie': 'cna=xXW2GqIv9RMCAbfvnGIq63vN; xlly_s=1; sgcookie=E100Qj86ID%2Fk0TrRWldMLBRIThghQTZGrW5na7sraTtAUpWD60g6oElStEvTvbC4iQIYjlctaQVdq9mffqVWdfGCud2BzCvMQYNnpd6vBQE2V%2Fs%3D; t=070b3f95a641ba0ca93d5bf37b525788; csg=94bb2a3c; _tb_token_=fef7e593eb6e3; cookie2=1aa13d513e4c871dfb77f7ab5001eef9; SCMLOCALE=zh-cn; _nk_=scm09620215; cookie17=UUpgR1XIK6lQS2vrBQ%3D%3D; SCMSESSID=1aa13d513e4c871dfb77f7ab5001eef9@HAVANA; SCMBIZTYPE=176000; X-XSRF-TOKEN=c39a6889-0197-406b-85c1-23acd3e78714; XSRF-TOKEN=846c7565-c106-46bb-a6e0-51411ad3ba5e; l=eB_izLpnL70Cr9-ABOfwhurza77OMIRfguPzaNbMiOCPOefWREFNW6xiTKLXCnGVnst6R3Wrj_IwBPTEGyznh3v4Gd3hJvSzqdTh.; tfstk=cQDGBNifhfPs-nnr0Aw6nVbtp5kcZC64rxkILhiqGCNUk-kFir5FaRdpxPYW7s1..; isg=BKmpjBp67zOSR9OHa2XjKRzauFUDdp2o7NeytUueWBDZEsgkk8creXBE1LYkijXg',
+            'cookie': '',
             'origin': 'https://tgc.tmall.com',
             'pragma': 'no-cache',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
@@ -71,6 +71,7 @@ class TaoGongChang(object):
         self.driver_path = 'chromedriver.exe'
         self.browser_user_data = os.path.join(BASE_DIR, 'user_data', self.login_id)
         self.__init_log()
+        self.__init_dir()
 
     def __init_log(self):
         for root, dirs, files in os.walk(os.path.join(BASE_DIR, 'log'), topdown=False):
@@ -98,7 +99,9 @@ class TaoGongChang(object):
         :return:
         """
 
-        self.data_dir = os.path.join(BASE_DIR, '表格数据')
+        self.cookie_dir = os.path.join(BASE_DIR, 'cookies')
+        self.cookie_path = os.path.join(self.cookie_dir, f'{self.login_id}.txt')
+        os.makedirs(self.cookie_dir, exist_ok=True)
 
     def get_order(self):
         url = 'https://tgc.tmall.com/api/v1/orderNew/getTradeOrders.htm'
@@ -127,11 +130,12 @@ class TaoGongChang(object):
         else:
             order = rep.json().get('data')
             for item in order:
-                order_list.append(item.get('detailOrders'))
+                order_list.extend(item.get('detailOrders'))
         run_function = lambda x, y: x if y in x else x+[y]
         order_list = reduce(run_function, [[], ]+order_list)
-        save_dir = os.path.join(self.data_dir, self.login_id, time.strftime('%Y-%m-%d_%H:%M:%S'))
-        with open(save_dir, encoding='utf8', mode='w') as f:
+        save_dir = os.path.join(BASE_DIR, 'json', self.login_id, time.strftime('%Y-%m-%d_%H_%M_%S'))
+        os.makedirs(save_dir, exist_ok=True)
+        with open(os.path.join(save_dir, 'data.json'), encoding='utf8', mode='w') as f:
             json.dump(order_list, f, ensure_ascii=False)
         return order_list
 
@@ -145,19 +149,21 @@ class TaoGongChang(object):
         rep = requests.post(url, json=param, headers=self.header)
         result = rep.json()
         if result.get('success'):
-            return False, {}
-        return True, result.get('data')
+            return True, result.get('data')
+        return False, {}
 
     def login(self):
         """
 
         :return:
         """
-
+        is_login = self.check_login()
+        if is_login:
+            return True
         update_result = self.check_update_driver(self.driver_path)
         if not update_result:
             self.log.info('chromedriver升级失败， 任务结束')
-            return
+            return False
         try:
             self.driver_init()
             login_url = self.url_dict.get('login')
@@ -189,20 +195,69 @@ class TaoGongChang(object):
                     self.log.info('请手动登录！')
                     time.sleep(5)
             self.driver.refresh()
+            self.driver.get(self.url_dict.get('login'))
             time.sleep(2)
             cookie = {}
             for c in self.driver.get_cookies():
                 cookie.update({c['name']: c['value']})
                 if c['name'] == 'XSRF-TOKEN':
                     self.xsrf_token = c['value']
-            self.cookie = cookie
-            self.header.update({'cookie': cookie})
+            self.cookie_dict = cookie
+            self.cookie = '; '.join([f'{k}={v}' for k, v in cookie.items()])
+            self.save_cookie(self.cookie)
+            self.header.update({'cookie': self.cookie})
             return True
         except Exception:
             self.log.error(traceback.format_exc())
             return False
         finally:
             self.close_some_server()
+
+    def save_cookie(self, cookie_str):
+        """
+
+        :return:
+        """
+        with open(self.cookie_path, mode='w', encoding='utf8') as f:
+            f.write(cookie_str)
+
+    def load_cookie(self):
+        """
+
+        :return:
+        """
+        try:
+            with open(self.cookie_path, mode='r', encoding='utf8') as f:
+                cookie = f.read()
+                return cookie
+        except Exception:
+            return False
+
+    def check_login(self):
+        cookie = self.load_cookie()
+        if not cookie:
+            return False
+        self.header.update({'cookie': cookie, 'x-xsrf-token': ''})
+
+        try:
+            rep = requests.get('https://scm.tmall.com/loginStatus', headers=self.header).json()
+            print(rep)
+            if rep.get('success') and rep.get('data'):
+                self.cookie_dict = {}
+                self.cookie = cookie
+                for item in cookie.split('; '):
+                    k, v = item.split('=', maxsplit=1)
+                    self.cookie_dict[k] = v
+                    if k == 'XSRF-TOKEN':
+                        self.xsrf_token = v
+                    self.header.update({'x-xsrf-token': v})
+                self.log.info('账号: {} 已经登录成功'.format(self.login_id))
+                return True
+            else:
+                return False
+        except Exception:
+            self.log.info(traceback.format_exc())
+            return False
 
     def get_version_via_com(self, file_name):
         import win32api
@@ -417,10 +472,11 @@ class TaoGongChang(object):
         """
         try:
             tmpl_path = os.path.join(BASE_DIR, 'tmpl.xlsx')
-            wb = load_workbook(tmpl_path, read_only=True)
+            wb = load_workbook(tmpl_path)
             sheet = wb.active
             for index, order in enumerate(data):
                 order_id = order.get('sourceTradeId')
+                index = index+2
                 flag, data = self.get_qOsi(order_id)
                 self.log.info(f'{order_id}: {data}')
                 order.update(data)
@@ -442,7 +498,7 @@ class TaoGongChang(object):
                 sheet.cell(row=index, column=16, value=order.get('auctionTitle'))  # 商品标题
                 sheet.cell(row=index, column=17, value=order.get('outerIdSku'))  # 商家编码
                 sheet.cell(row=index, column=18, value=order.get('buyAmount'))  # 商品数量
-            wb.save('订单数据_{}_{}.xlsx'.format(self.login_id, time.strftime('%Y-%m-%d_%H:%M:%S')))
+            wb.save('订单数据_{}_{}.xlsx'.format(self.login_id, time.strftime('%Y-%m-%d_%H%M%S')))
         except Exception:
             self.log.error("生成订单数据失败\n{}".format(traceback.format_exc()))
             return False
@@ -487,36 +543,36 @@ class TaoGongChang(object):
 
 def main():
     os.system('taskkill /f /im chromedriver.exe')
-    print("                            _ooOoo_  ")
-    print("                           o8888888o  ")
-    print("                           88  .  88  ")
-    print("                           (| -_- |)  ")
-    print("                            O\\ = /O  ")
-    print("                        ____/`---'\\____  ")
-    print("                      .   ' \\| |// `.  ")
-    print("                       / \\||| : |||// \\  ")
-    print("                     / _||||| -:- |||||- \\  ")
-    print("                       | | \\\\\\ - /// | |  ")
-    print("                     | \\_| ''\\---/'' | |  ")
-    print("                      \\ .-\\__ `-` ___/-. /  ")
-    print("                   ___`. .' /--.--\\ `. . __  ")
-    print("                ."" '< `.___\\_<|>_/___.' >'"".  ")
-    print("               | | : `- \\`.;`\\ _ /`;.`/ - ` : | |  ")
-    print("                 \\ \\ `-. \\_ __\\ /__ _/ .-` / /  ")
-    print("         =======`-.____`-.___\\_____/___.-`____.-'=======  ")
-    print("                            `=------='  ")
-    print("  ")
-    print("         .............................................  ")
-    print("                  佛祖镇楼                  BUG消失  ")
-    print("          佛曰:  ")
-    print("                  写字楼里写字间，写字间里程序员；  ")
-    print("                  程序人员写程序，又拿程序换酒钱。  ")
-    print("                  酒醒只在网上坐，酒醉还来网下眠；  ")
-    print("                  酒醉酒醒日复日，网上网下年复年。  ")
-    print("                  但愿老死电脑间，不愿鞠躬老板前；  ")
-    print("                  奔驰宝马贵者趣，公交自行程序员。  ")
-    print("                  别人笑我忒疯癫，我笑自己命太贱；  ")
-    print("                  不见满街漂亮妹，哪个归得程序员？")
+    # print("                            _ooOoo_  ")
+    # print("                           o8888888o  ")
+    # print("                           88  .  88  ")
+    # print("                           (| -_- |)  ")
+    # print("                            O\\ = /O  ")
+    # print("                        ____/`---'\\____  ")
+    # print("                      .   ' \\| |// `.  ")
+    # print("                       / \\||| : |||// \\  ")
+    # print("                     / _||||| -:- |||||- \\  ")
+    # print("                       | | \\\\\\ - /// | |  ")
+    # print("                     | \\_| ''\\---/'' | |  ")
+    # print("                      \\ .-\\__ `-` ___/-. /  ")
+    # print("                   ___`. .' /--.--\\ `. . __  ")
+    # print("                ."" '< `.___\\_<|>_/___.' >'"".  ")
+    # print("               | | : `- \\`.;`\\ _ /`;.`/ - ` : | |  ")
+    # print("                 \\ \\ `-. \\_ __\\ /__ _/ .-` / /  ")
+    # print("         =======`-.____`-.___\\_____/___.-`____.-'=======  ")
+    # print("                            `=------='  ")
+    # print("  ")
+    # print("         .............................................  ")
+    # print("                  佛祖镇楼                  BUG消失  ")
+    # print("          佛曰:  ")
+    # print("                  写字楼里写字间，写字间里程序员；  ")
+    # print("                  程序人员写程序，又拿程序换酒钱。  ")
+    # print("                  酒醒只在网上坐，酒醉还来网下眠；  ")
+    # print("                  酒醉酒醒日复日，网上网下年复年。  ")
+    # print("                  但愿老死电脑间，不愿鞠躬老板前；  ")
+    # print("                  奔驰宝马贵者趣，公交自行程序员。  ")
+    # print("                  别人笑我忒疯癫，我笑自己命太贱；  ")
+    # print("                  不见满街漂亮妹，哪个归得程序员？")
 
     print('***********************操作说明***************************'.replace('*', ' '))
     print('********************第一步: 输入账号***********************'.replace('*', ' '))
@@ -556,7 +612,7 @@ def main():
     except Exception:
         taoGongChang.log.error(traceback.format_exc())
     finally:
-        taoGongChang.close_some_server()
+        # taoGongChang.close_some_server()
         os.system('taskkill /f /im chromedriver.exe')
 
 

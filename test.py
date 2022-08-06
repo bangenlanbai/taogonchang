@@ -21,12 +21,12 @@ header = {
     'bx-v': '2.2.2',
     'cache-control': 'no-cache',
     'content-type': 'application/json;charset=UTF-8',
-    'cookie': 'cna=xXW2GqIv9RMCAbfvnGIq63vN; xlly_s=1; sgcookie=E100Qj86ID%2Fk0TrRWldMLBRIThghQTZGrW5na7sraTtAUpWD60g6oElStEvTvbC4iQIYjlctaQVdq9mffqVWdfGCud2BzCvMQYNnpd6vBQE2V%2Fs%3D; t=070b3f95a641ba0ca93d5bf37b525788; csg=94bb2a3c; _tb_token_=fef7e593eb6e3; cookie2=1aa13d513e4c871dfb77f7ab5001eef9; SCMLOCALE=zh-cn; _nk_=scm09620215; cookie17=UUpgR1XIK6lQS2vrBQ%3D%3D; SCMSESSID=1aa13d513e4c871dfb77f7ab5001eef9@HAVANA; SCMBIZTYPE=176000; X-XSRF-TOKEN=c39a6889-0197-406b-85c1-23acd3e78714; XSRF-TOKEN=846c7565-c106-46bb-a6e0-51411ad3ba5e; l=eB_izLpnL70Cr9-ABOfwhurza77OMIRfguPzaNbMiOCPOefWREFNW6xiTKLXCnGVnst6R3Wrj_IwBPTEGyznh3v4Gd3hJvSzqdTh.; tfstk=cQDGBNifhfPs-nnr0Aw6nVbtp5kcZC64rxkILhiqGCNUk-kFir5FaRdpxPYW7s1..; isg=BKmpjBp67zOSR9OHa2XjKRzauFUDdp2o7NeytUueWBDZEsgkk8creXBE1LYkijXg',
+    'cookie': 'isg=BKKiHm4ENBBBmijMp_Lb5qT58ygE86YNAOF3U-w7xZXAv0I51IExHFo97_tDrx6l; tfstk=cD55B-x300mSKrrX0La4LB5NrVRGZwg6R8tlPo4dcsGYgn75i_lwfmkGKDdeJE1..; l=eB_xNpImL7RudKr2BOfZourza77TjIRAguPzaNbMiOCPO7fw5MmlW6xI2rLeCnGVhs1kR3oSoXzWBeYBqIfYLsbr42FJXhMmn; X-XSRF-TOKEN=b0b5879c-43d2-429c-8fc0-8da151558de8; SCMBIZTYPE=176000; SCMSESSID=1d73bed2af1f78ed227ecbdaab1f8a99@HAVANA; cookie17=UUpgR1XIK6lQS2vrBQ%3D%3D; _nk_=scm09620215; SCMLOCALE=zh-cn; uc3=nk2=EF2TYziLgGExNCs%3D&lg2=V32FPkk%2Fw0dUvg%3D%3D&vt3=F8dCv4GxOwITPc80CIE%3D&id2=UUpgR1XIK6lQS2vrBQ%3D%3D; xlly_s=1; _tb_token_=96b613d1d1f1; uc4=id4=0%40U2gqyOiLaxMX6umQUmlDNZLOALUOFRet&nk4=0%40EoTGj1Z%2B2%2FffunOpCnbotEXVT7L0ew%3D%3D; cookie2=1d73bed2af1f78ed227ecbdaab1f8a99; csg=237b5ddf; t=da2eb272c88bef428a82acbd13b6ad8b; lid=scm09620215; XSRF-TOKEN=8b1658c2-803d-46da-9e7f-a896dbca2ffa; tracknick=scm09620215; sgcookie=E100BrnqLOZ%2BDv8QWYjLUUVwndrnemFjbku5yybcQ4M9GnUP%2FpFgohSQCGgXm4ltPOfaVmBK%2BLEg%2BuM4lBijce%2FfHbFcmZLhsnXg0IIpbpx1by0%3D; lgc=scm09620215; cna=WKl0Gy/QpgQCAbfvnGKQllUw',
     'origin': 'https://tgc.tmall.com',
     'pragma': 'no-cache',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 ' \
                   'Safari/537.36',
-    'x-xsrf-token': '846c7565-c106-46bb-a6e0-51411ad3ba5e',
+    'x-xsrf-token': '8b1658c2-803d-46da-9e7f-a896dbca2ffa',
 }
 
 
@@ -66,7 +66,7 @@ def request_download_big_file(request_kwargs, local_path, ):
 
 def get_qOsi(mainOrder):
     url = 'https://tgc.tmall.com/ds/api/v1/o/qOsi'
-    param = {"mainOrderId": mainOrder, "infoKeys": ["buyerNick", "fullName", "mobilephone", "fullAddress"]}
+    param = {"mainOrderId": '2802160872802626426', "infoKeys": ["buyerNick", "fullName", "mobilephone", "fullAddress"]}
     rep = requests.post(url, json=param, headers=header)
     result = rep.json()
 
@@ -188,6 +188,7 @@ def save_data(data):
 
 
 if __name__ == '__main__':
-    a = get_order()
-    save_data(a)
-    print(len(a))
+    # a = get_order()
+    # save_data(a)
+    # print(len(a))
+    print(get_qOsi(''))
