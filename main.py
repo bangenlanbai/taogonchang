@@ -28,7 +28,7 @@ def main():
     # kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), 128)
     all_task = [TaoGongChang, ]
     for task in all_task:
-        task.start()
+        task.test()
 
 
 if __name__ == '__main__':

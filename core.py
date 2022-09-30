@@ -9,11 +9,13 @@ import time
 import traceback
 import zipfile
 from contextlib import closing
+from copy import copy
 from functools import reduce
 
 import requests
 from loguru import logger
 from openpyxl import load_workbook
+from openpyxl.cell import Cell
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -81,8 +83,13 @@ class Base(object):
         :return:
         """
         self.tmpl_path = os.path.join(BASE_DIR, f'{self.platform}_tmpl.xlsx')
+        self.excel_save_path = os.path.join(
+            '{}_订单数据_{}_{}.xlsx'.format(self.platform_str, self.login_id, time.strftime('%Y-%m-%d_%H%M%S')))
+        self.data_save_dir = os.path.join(BASE_DIR, 'json', self.platform, self.login_id)
         self.cookie_dir = os.path.join(BASE_DIR, 'cookies', self.platform)
         self.cookie_path = os.path.join(self.cookie_dir, f'{self.login_id}.txt')
+        self.data_save_path = os.path.join(self.data_save_dir, f'{self.platform}_'
+                                                               f'{time.strftime("%Y-%m-%d_%H_%M_%S")}.json')
         os.makedirs(self.cookie_dir, exist_ok=True)
 
     def save_cookie(self, cookie_str):
@@ -273,6 +280,34 @@ class Base(object):
         :param content:
         :return:
         """
+        pass
+
+    def read_data(self, path, encoding='utf8'):
+        """
+
+        :param path:
+        :return:
+        """
+        with open(path, mode='r', encoding=encoding) as f:
+            content = f.read()
+        try:
+            json_data = json.loads(content)
+            return json_data
+        except Exception:
+            self.log.warning(f'文件[{path}] json格式化失败')
+            return content
+
+    @staticmethod
+    def set_excel_cell_style(cell: Cell, temp_cell: Cell):
+        """
+            获取 某个的所有样式
+        :param cell:
+        :return:
+        """
+        style = copy(temp_cell._style)
+        border = copy(temp_cell.border)
+        cell._style = style
+        cell.border = border
 
     @staticmethod
     def start():
@@ -346,9 +381,7 @@ class TaoGongChang(Base):
                 order_list.extend(item.get('detailOrders'))
         run_function = lambda x, y: x if y in x else x+[y]
         order_list = reduce(run_function, [[], ]+order_list)
-        save_dir = os.path.join(BASE_DIR, 'json', self.login_id, time.strftime('%Y-%m-%d_%H_%M_%S'))
-        os.makedirs(save_dir, exist_ok=True)
-        with open(os.path.join(save_dir, 'data.json'), encoding='utf8', mode='w') as f:
+        with open(self.data_save_path, encoding='utf8', mode='w') as f:
             json.dump(order_list, f, ensure_ascii=False)
         return order_list
 
@@ -475,7 +508,9 @@ class TaoGongChang(Base):
             self.log.error('下载表格失败， {}'.format(traceback.format_exc()))
             return False
 
-    def save_excel(self, data):
+
+
+    def save_excel(self, data, qQsi=False):
         """
             保存数据
         :param data:
@@ -485,39 +520,71 @@ class TaoGongChang(Base):
 
             wb = load_workbook(self.tmpl_path)
             sheet = wb.active
+            style_index = 2
             for index, order in enumerate(data):
                 order_id = order.get('sourceTradeId')
                 index = index+2
-                flag, data = self.get_qOsi(order_id)
-                self.log.info(f'{order_id}: {data}')
-                order.update(data)
+                sheet.row_dimensions[index].height = 20  # 设置行高
+
+                if qQsi:
+                    flag, data = self.get_qOsi(order_id)
+                    self.log.info(f'{order_id}: {data}')
+                    order.update(data)
                 # sheet.cell(row=index, column=1, value=order_id)  # 快递公司
                 # sheet.cell(row=index, column=2, value=order_id)  # 快递单号
-                sheet.cell(row=index, column=3, value=order_id)  # 订单编号
+                sheet_item = sheet.cell(row=index, column=3, value=order_id)  # 订单编号
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=3))
+
                 # sheet.cell(row=index, column=4, value=order_id)  # 订单来源
-                sheet.cell(row=index, column=5, value=order.get('buyerNick'))  # 买家昵称
-                sheet.cell(row=index, column=6, value=order.get('fullName'))  # 收货人姓名
-                sheet.cell(row=index, column=7, value=order.get('mobilephone'))  # 收货人手机号
-                sheet.cell(row=index, column=8, value=order.get('prov'))  # 省
-                sheet.cell(row=index, column=9, value=order.get('city'))  # 市
-                sheet.cell(row=index, column=10, value=order.get('area'))  # 区/县
-                sheet.cell(row=index, column=11, value=order.get('town'))  # 街道地址
-                sheet.cell(row=index, column=12, value=order.get('address'))  # 详细信息
+                sheet_item = sheet.cell(row=index, column=5, value=order.get('buyerNick'))  # 买家昵称
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=5))
+
+                sheet_item = sheet.cell(row=index, column=6, value=order.get('fullName'))  # 收货人姓名
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=6))
+
+                sheet_item = sheet.cell(row=index, column=7, value=order.get('mobilephone'))  # 收货人手机号
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=7))
+
+                sheet_item = sheet.cell(row=index, column=8, value=order.get('prov'))  # 省
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=8))
+
+                sheet_item = sheet.cell(row=index, column=9, value=order.get('city'))  # 市
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=9))
+
+                sheet_item = sheet.cell(row=index, column=10, value=order.get('area'))  # 区/县
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=10))
+
+                sheet_item = sheet.cell(row=index, column=11, value=order.get('town'))  # 街道地址
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=11))
+
+                sheet_item = sheet.cell(row=index, column=12, value=order.get('address'))  # 详细信息
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=12))
+
                 # sheet.cell(row=index, column=13, value=order.get('mobilephone'))  # 卖家备注
                 # sheet.cell(row=index, column=14, value=order.get('mobilephone'))  # 买家留言
                 # sheet.cell(row=index, column=15, value=order.get('mobilephone'))  # 实付金额
-                sheet.cell(row=index, column=16, value=order.get('auctionTitle'))  # 商品标题
-                sheet.cell(row=index, column=17, value=order.get('outerIdSku'))  # 商家编码
-                sheet.cell(row=index, column=18, value=order.get('buyAmount'))  # 商品数量
-                sheet.cell(row=index, column=19, value=order.get('auctionId'))  # 商品ID
+                sheet_item = sheet.cell(row=index, column=16, value=order.get('auctionTitle'))  # 商品标题
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=16))
+
+                sheet_item = sheet.cell(row=index, column=17, value=order.get('outerIdSku'))  # 商家编码
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=17))
+
+                sheet_item = sheet.cell(row=index, column=18, value=order.get('buyAmount'))  # 商品数量
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=18))
+
+                sheet_item = sheet.cell(row=index, column=19, value=order.get('auctionId'))  # 商品ID
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=19))
+
                 shop_info = order.get('orderSkuAttrVOs')
                 shop_info_str = ''
                 for item in shop_info:
-                    item_info = '{}: {}\n'.format(item.get('attrType', ""), item.get('attrValue', ""))
+                    item_info = '{}: {}\n'.format(item.get('attrType', "").strip(), item.get('attrValue', "").strip())
                     shop_info_str += item_info
 
-                sheet.cell(row=index, column=20, value=shop_info_str)  # 商品描述
-            wb.save('{}_订单数据_{}_{}.xlsx'.format(self.platform_str, self.login_id, time.strftime('%Y-%m-%d_%H%M%S')))
+                sheet_item = sheet.cell(row=index, column=20, value=shop_info_str)  # 商品描述
+                self.set_excel_cell_style(sheet_item, sheet.cell(row=style_index, column=20))
+
+            wb.save(self.excel_save_path)
         except Exception:
             self.log.error("生成订单数据失败\n{}".format(traceback.format_exc()))
             return False
@@ -561,6 +628,31 @@ class TaoGongChang(Base):
             print('登录成功！开始获取订单信息')
             result = taoGongChang.get_order()
 
+            if result:
+                if taoGongChang.save_excel(result, True):
+                    print('执行完毕')
+                else:
+                    print('保存文件失败')
+            else:
+                print('账号{}: 没有需要发货的订单！'.format(login_id))
+                return
+        except Exception:
+            taoGongChang.log.error(traceback.format_exc())
+        finally:
+            # taoGongChang.close_some_server()
+            os.system('taskkill /f /im chromedriver.exe')
+
+    @staticmethod
+    def test():
+        # login_id = input('请输入账号: ')
+        # password = input('请输入密码: ')
+        login_id = '18660998382'
+        password = '123456'
+        taoGongChang = TaoGongChang(login_id.strip(), password.strip())
+        taoGongChang.data_save_path = 'json/tmall/18660998382/data.json'
+        print('平台: {} 账号: [{}] 开始登录'.format(taoGongChang.platform_str, taoGongChang.login_id))
+        try:
+            result = taoGongChang.read_data(taoGongChang.data_save_path)
             if result:
                 if taoGongChang.save_excel(result):
                     print('执行完毕')
