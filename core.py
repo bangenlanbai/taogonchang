@@ -298,10 +298,35 @@ class Base(object):
             return content
 
     @staticmethod
+    def request_download_big_file(request_kwargs, local_path, ):
+        try:
+            if os.path.exists(local_path):
+                os.remove(local_path)
+            local_path_tmp = local_path+'.tmp'
+            param = {'url': '', 'stream': True, 'headers': ''}
+            param.update(request_kwargs)
+            with closing(requests.get(**param)) as r:
+                # r = requests.get(url=file_url, verify=False, stream=True)
+                if r.status_code == 200:
+                    with open(local_path_tmp, "wb") as f:
+                        # f.write(r.content)
+                        for chunk in r.iter_content(chunk_size=4096):
+                            if chunk:
+                                f.write(chunk)
+                else:
+                    return False
+            os.rename(local_path_tmp, local_path)
+        except Exception:
+            print(traceback.format_exc())
+            return False
+        return True
+
+    @staticmethod
     def set_excel_cell_style(cell: Cell, temp_cell: Cell):
         """
             获取 某个的所有样式
         :param cell:
+        :param temp_cell:
         :return:
         """
         style = copy(temp_cell._style)
@@ -508,8 +533,6 @@ class TaoGongChang(Base):
             self.log.error('下载表格失败， {}'.format(traceback.format_exc()))
             return False
 
-
-
     def save_excel(self, data, qQsi=False):
         """
             保存数据
@@ -587,30 +610,6 @@ class TaoGongChang(Base):
             wb.save(self.excel_save_path)
         except Exception:
             self.log.error("生成订单数据失败\n{}".format(traceback.format_exc()))
-            return False
-        return True
-
-    @staticmethod
-    def request_download_big_file(request_kwargs, local_path, ):
-        try:
-            if os.path.exists(local_path):
-                os.remove(local_path)
-            local_path_tmp = local_path+'.tmp'
-            param = {'url': '', 'stream': True, 'headers': ''}
-            param.update(request_kwargs)
-            with closing(requests.get(**param)) as r:
-                # r = requests.get(url=file_url, verify=False, stream=True)
-                if r.status_code == 200:
-                    with open(local_path_tmp, "wb") as f:
-                        # f.write(r.content)
-                        for chunk in r.iter_content(chunk_size=4096):
-                            if chunk:
-                                f.write(chunk)
-                else:
-                    return False
-            os.rename(local_path_tmp, local_path)
-        except Exception:
-            print(traceback.format_exc())
             return False
         return True
 
