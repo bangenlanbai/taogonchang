@@ -191,4 +191,5 @@ if __name__ == '__main__':
     # a = get_order()
     # save_data(a)
     # print(len(a))
-    print(get_qOsi(''))
+    # print(get_qOsi(''))
+    get_order()
