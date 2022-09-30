@@ -9,6 +9,7 @@ pywin32 = "*"
 openpyxl = "*"
 loguru = "*"
 pyinstaller = "*"
+tinyaes = "*"
 
 [dev-packages]
 pyinstaller = "*"
