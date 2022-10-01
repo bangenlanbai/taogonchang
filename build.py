@@ -5,15 +5,15 @@
 import os
 import traceback
 from distutils.core import setup
+from shutil import copyfile, rmtree
 from uuid import uuid4
+
 import colorama
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Cython.Build import cythonize
 
 colorama.init(autoreset=True, wrap=True)
-
-# 由于涉及清理pyd文件，因此这里不能导入任何其他可能需要清理的py文件
 
 key_ = '123456789'
 while len(key_)%16 != 0:
@@ -97,11 +97,10 @@ def build_a_file(module_file_path):
     if os.path.exists(module_file_path):
         print(colorama.Fore.BLUE+'building {} ...'.format(os.path.split(module_file_path)[1]))
         exec_setup(module_file_path)
-        clean_files(module_file_path)
+        # clean_files(module_file_path)
 
 
 def build():
-
     for f_name in build_file_list:
         module_file_path = os.path.join(basedir, f_name)
         build_a_file(module_file_path)
@@ -123,18 +122,27 @@ def package():
         打包
     :return:
     """
-    os.system(f'pyinstaller -F main.py --uac-admin --key {uuid4()}')
+    copyfile('main.py', 'build/main.py')
+    os.system('move *.pyd build/')
+    os.system(f'pyinstaller -F build/main.py --uac-admin --key {str(uuid4())}')
 
 
 def clear():
-    rm_ext_list = ['.c', '.pyd', '.da']
+    rm_ext_list = ['.c', '.pyd', '.da', '.spec']
+    rm_dir = ['build']
     count = 0
+    for item in rm_dir:
+        dir_path = os.path.join(basedir, item)
+        if os.path.exists(dir_path):
+            rmtree(dir_path)
+            print(colorama.Fore.BLUE+'rm {} ......'.format(dir_path))
+
     for root, dirs, files in os.walk(basedir):
         for file in files:
             f_path = os.path.join(root, file)
             if os.path.splitext(f_path)[1].lower() in rm_ext_list:
                 count += 1
-                print('{} rm {}'.format(count, f_path))
+                print(colorama.Fore.BLUE+'{} rm {}'.format(count, f_path))
                 os.remove(f_path)
     print(colorama.Fore.RED+'rm files count = {}'.format(count))
 
@@ -144,8 +152,14 @@ def main():
 
     :return:
     """
+    print('clear files of before build')
+    clear()
+    print('start build ......')
     build()
+    print('package ......')
     package()
+    print('clear')
+    clear()
 
 
 if __name__ == '__main__':
