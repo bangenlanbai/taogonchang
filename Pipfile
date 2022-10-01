@@ -10,6 +10,8 @@ openpyxl = "*"
 loguru = "*"
 pyinstaller = "*"
 tinyaes = "*"
+pycryptodome = "*"
+cython = "*"
 
 [dev-packages]
 pyinstaller = "*"

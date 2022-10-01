@@ -12,6 +12,8 @@ from functools import reduce
 import requests
 from openpyxl import load_workbook
 
+from core import TaoGongChang
+
 header = {
     'authority': 'tgc.tmall.com',
     'method': 'POST',
@@ -185,6 +187,12 @@ def save_data(data):
     with open('./data.json', encoding='utf8', mode='r') as f:
         data = json.load(f)
     save_excel(data)
+
+
+def test():
+    all_task = [TaoGongChang, ]
+    for task in all_task:
+        task.test()
 
 
 if __name__ == '__main__':
