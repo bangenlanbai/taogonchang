@@ -85,8 +85,8 @@ def clean_files(module_file_path):
     :return:
     """
     # 删除 py文件
-    # if os.path.exists(module_file_path):
-    #     os.remove(module_file_path)
+    if os.path.exists(module_file_path):
+        os.remove(module_file_path)
     # 删除 .c文件
     c_file_path = module_file_path.replace('.py', '.c')
     if os.path.exists(c_file_path):
