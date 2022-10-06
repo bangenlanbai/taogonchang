@@ -15,7 +15,7 @@ from Cython.Build import cythonize
 
 colorama.init(autoreset=True, wrap=True)
 
-key_ = '123456789'
+key_ = str(uuid4())
 while len(key_)%16 != 0:
     key_ += chr(0)
 key_ = key_.encode('utf-8')
@@ -158,7 +158,7 @@ def main():
     build()
     print('package ......')
     package()
-    print('clear')
+    print('clear ......')
     clear()
 
 
