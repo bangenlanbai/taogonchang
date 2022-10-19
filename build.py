@@ -2,6 +2,7 @@
 # @Time     : 2022/10/1 20:26
 # @Author   : BGLB
 # @Software : PyCharm
+import json
 import os
 import traceback
 from distutils.core import setup
@@ -21,8 +22,10 @@ while len(key_)%16 != 0:
 key_ = key_.encode('utf-8')
 
 ignore_file_list = []
-build_file_list = ['core.py', ]
+# build_file_list = ['core.py', ]
 basedir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(basedir, 'build_config.json'), mode='r', encoding='utf8') as f:
+    build_config = json.load(f,)
 
 
 # 本函数需要与util中的aes_encrypt保持一致！
@@ -101,7 +104,8 @@ def build_a_file(module_file_path):
 
 
 def build():
-    for f_name in build_file_list:
+    print(build_config)
+    for f_name in build_config.get('build_file_list'):
         module_file_path = os.path.join(basedir, f_name)
         build_a_file(module_file_path)
 
@@ -123,6 +127,7 @@ def package():
     :return:
     """
     copyfile('main.py', 'build/main.py')
+    copyfile('package_import.py', 'build/package_import.py')
     os.system('move *.pyd build/')
     os.system(f'pyinstaller -F build/main.py --uac-admin --key {str(uuid4())}')
 
@@ -152,13 +157,13 @@ def main():
 
     :return:
     """
-    print('clear files of before build')
+    print(colorama.Fore.GREEN + 'clear files of before build')
     clear()
-    print('start build ......')
+    print(colorama.Fore.GREEN + 'start build ......')
     build()
-    print('package ......')
+    print(colorama.Fore.GREEN + 'package ......')
     package()
-    print('clear ......')
+    print(colorama.Fore.GREEN + 'clear ......')
     clear()
 
 
