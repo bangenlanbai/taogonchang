@@ -12,6 +12,7 @@ pyinstaller = "*"
 tinyaes = "*"
 pycryptodome = "*"
 cython = "*"
+selenium = "*"
 
 [dev-packages]
 pyinstaller = "*"
