@@ -31,9 +31,9 @@ jobs:
 #        pip install -r requirements.txt
      - name: Start Build
        run: |
-        pipenv shell
-        pipenv install
-        pyinstaller -F main.py --uac-admin --key ${{ github.sha }}
+        pip list
+        pipenv run install
+        pipenv run pyinstaller -F main.py --uac-admin --key ${{ github.sha }}
 #        python build.py
 
      - name: package
