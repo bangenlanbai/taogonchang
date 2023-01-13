@@ -28,7 +28,6 @@ with open(os.path.join(basedir, 'build_config.json'), mode='r', encoding='utf8')
     build_config = json.load(f,)
 
 
-# 本函数需要与util中的aes_encrypt保持一致！
 def aes_encrypt(key, target):
     '''
     传入byte类型key及待加密数据，返回加密后数据

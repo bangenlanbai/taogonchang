@@ -1,8 +1,6 @@
 {
   "build_file_list": [
-    "core.py",
-    "auth.py",
-    "tools.py"
+    "core.py"
   ],
   "ignore_file_list": []
 }

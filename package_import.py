@@ -41,6 +41,3 @@ import zlib
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-
-from tools import Signer, aes_decrypt, correct_key, aes_encrypt, get_sys_data
-from auth import AuthClient
