@@ -46,3 +46,6 @@
 -  [x] `商品数量`:
 
 -  [x] `商品ID`:
+
+## release 文件说明：
+gitflow 中使用 pyinstaller 一直有问题，貌似是不能打包 requests 包下面的有些模块，所以只能麻烦自己本机编译了，运行 `python build.py` 就可以
