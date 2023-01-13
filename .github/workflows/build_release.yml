@@ -24,15 +24,16 @@ jobs:
        uses: palewire/install-python-pipenv-pipfile@v2
        with:
         python-version: 3.7.5
+       run: |
+        pipenv install
 #     - name: Install Package
 #       run: |
 #        python -m pip install --upgrade pip
 #        pip install wheel
 #        pip install -r requirements.txt
-     - name: Start Build 
+     - name: Start Build
        run: |
-        pip list
-        pyinstaller -F main.py --uac-admin --key ${{ github.sha }}
+        pipenv run pyinstaller -F main.py --uac-admin --key ${{ github.sha }}
 #        python build.py
 
      - name: package
